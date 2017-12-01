@@ -3,6 +3,8 @@
 #include <math.h>
 #include <stdbool.h>
 #include <omp.h>
+struct Compare { float val; int index; };    
+#pragma omp declare reduction(minimum : struct Compare : omp_out = omp_in.val > omp_out.val ? omp_in : omp_out)
 double **mat,**P,**L,**U,**matTemp, *B,*Btemp, *x, *v;
 double start=0,stop=0,res=0,ptotal=0;
 void swap(double *xp, double *yp)
@@ -17,16 +19,16 @@ void printMatrix(double **mat,int size)
 	int i,j;
     for (i=0;i<size;i++) {
         for(j=0;j<size;j++) {
-           	 if(mat[i][j]>=0)
-           	 printf(" ");
- 			 printf(" %f ",mat[i][j]);
+           	if(mat[i][j]>=0)
+           	printf(" ");
+ 			printf(" %f ",mat[i][j]);
 			        }
         printf("\n");
     }
 	printf("\n");
 	}
 
-void freeMatrix()
+void freeMatrix(int size)
 {
 	int i =0;
     for(i = 0; i < size; i++)
@@ -37,41 +39,50 @@ void freeMatrix()
         	free(U[i]);
         	free(matTemp[i]);
         	}
-    free(mat);
-    free(P);
-    free(L);
-    free(U);
-    free(matTemp);
-    free(B);
-    free(Btemp);
-    free(x);
-    free(v);
+    //free(mat);
+    //free(P);
+    //free(L);
+    //free(U);
+    //free(matTemp);
+    //free(B);
+    //free(Btemp);
+    //free(x);
+    //free(v);
 }	
 void lu_pivot(int size)
 {
 	start=omp_get_wtime();	
     int k;
     for(k = 0; k < size-1; k++){
+    	struct Compare max; 
+		max.val = U[k][k]; 
+		max.index = k;
     	int maxi=k;
-    	for(int i=k+1;i<size;i++)
-    		if(abs(U[i][k]) > abs(U[maxi][k]))
-    			maxi=i;
+    	#pragma omp parallel for reduction(maximum:max)
+	for(int i = k+1; i<size; i++) {
+    		if(U[i][k] > max.val) 
+		{ 
+        		max.val = U[i][k];
+        		max.index = i;
+   			}	
+		}
+	maxi=max.index;
     	if(maxi!=k){
     	#pragma omp parallel for
     	for(int i=k;i<size;i++)
 			swap(&U[k][i],&U[maxi][i]);
 		#pragma omp parallel for
 		for(int i=0;i<=k-1;i++)
-		 	swap(&L[k][i],&L[maxi][i]);
+			swap(&L[k][i],&L[maxi][i]);
 		#pragma omp parallel for
 		for(int i=0;i<size;i++)
-		 	swap(&P[k][i],&P[maxi][i]);
-		 	}
-		 if(U[k][k]==0)
-		 {
-		 	printf("\n INFINITE MANY SOLUTION\n");
-		 	exit(0);
-		 	}
+			swap(&P[k][i],&P[maxi][i]);
+			}
+		if(U[k][k]==0)
+		{
+			printf("\n INFINITE MANY SOLUTION\n");
+			exit(0);
+			}
 		#pragma omp parallel for
       	for(int row = k+1 ; row < size; row++){
        		L[row][k] = U[row][k]/U[k][k];
@@ -91,11 +102,11 @@ void lu_npivot(int size)
 	start=omp_get_wtime();	
     int k;
     for(k = 0; k < size-1; k++){
-    	 if(U[k][k]==0)
-		 {
-		 	printf("\nError...\n");
-		 	exit(0);
-		 	}
+    	if(U[k][k]==0)
+		{
+			printf("\nError...\n");
+			exit(0);
+			}
 		#pragma omp parallel for
       	for(int row = k+1 ; row < size; row++){
        		L[row][k] = U[row][k]/U[k][k];
@@ -285,3 +296,5 @@ int main()
 		}
 		printf("\n\nTotal Time of Execution = %f",ptotal);
 }
+	
+	
