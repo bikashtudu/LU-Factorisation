@@ -2,4 +2,4 @@
 - Sequential Implementation
 - Parallel Implementation
     - OPENMP 
-- Data(Order of matrix - Execution Time)
+- Data(Execution Time vs Order of matrix)
