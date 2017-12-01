@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <omp.h>
 struct Compare { float val; int index; };    
-#pragma omp declare reduction(minimum : struct Compare : omp_out = omp_in.val > omp_out.val ? omp_in : omp_out)
+#pragma omp declare reduction(maximum : struct Compare : omp_out = omp_in.val > omp_out.val ? omp_in : omp_out)
 double **mat,**P,**L,**U,**matTemp, *B,*Btemp, *x, *v;
 double start=0,stop=0,res=0,ptotal=0;
 void swap(double *xp, double *yp)
@@ -296,5 +296,3 @@ int main()
 		}
 		printf("\n\nTotal Time of Execution = %f",ptotal);
 }
-	
-	
