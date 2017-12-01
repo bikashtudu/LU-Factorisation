@@ -36,13 +36,13 @@ void lu_pivot(int size)
     		if(abs(U[i][k]) > abs(U[maxi][k]))
     			maxi=i;
     	if(maxi!=k){
-    	// #pragma omp parallel for
+   
     	for(int i=k;i<size;i++)
 			swap(&U[k][i],&U[maxi][i]);
-		// #pragma omp parallel for
+	
 		for(int i=0;i<=k-1;i++)
 		 	swap(&L[k][i],&L[maxi][i]);
-		// #pragma omp parallel for
+	
 		for(int i=0;i<size;i++)
 		 	swap(&P[k][i],&P[maxi][i]);
 		 	}
@@ -51,10 +51,10 @@ void lu_pivot(int size)
 		 	printf("\n INFINITE MANY SOLUTION\n");
 		 	exit(0);
 		 	}
-		// #pragma omp parallel for
+	
       	for(int row = k+1 ; row < size; row++){
        		L[row][k] = U[row][k]/U[k][k];
-       		// #pragma omp parallel for
+       	
        		for(int col = k; col < size; col++)
          		U[row][col] = U[row][col] - L[row][k]*U[k][col];
         }
@@ -75,10 +75,10 @@ void lu_npivot(int size)
 		 	printf("\nError...\n");
 		 	exit(0);
 		 	}
-		// #pragma omp parallel for
+	
       	for(int row = k+1 ; row < size; row++){
        		L[row][k] = U[row][k]/U[k][k];
-       		// #pragma omp parallel for
+       	
        		for(int col = k; col < size; col++)
          		U[row][col] = U[row][col] - L[row][k]*U[k][col];
         }
@@ -167,10 +167,8 @@ void SolveV(int size)
 	{
 		v[i]=B[i];
 		double sub=0;
-		// #pragma omp parallel for reduction(+:sub)
 		for(int j=0;j<i;j++)
 			sub+=L[i][j]*v[j];
-		//printf("\n sub: %f",sub);
 		v[i]-=sub;
     }
     stop=omp_get_wtime();
@@ -188,7 +186,6 @@ void SolveX(int size)
     {
     	x[i]=v[i];
     	double sum=0;
-    	// #pragma omp parallel for reduction(+:sum)
 		for(int j=i+1;j<size;j++)
 			sum+=U[i][j]*x[j];
 		x[i]-=sum;
