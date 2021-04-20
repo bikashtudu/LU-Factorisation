@@ -1,5 +1,5 @@
 # LU-factorisation
-## Features:
+## Features
 - Sequential Implementation
 - Parallel Implementation
     - OPENMP 
